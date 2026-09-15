@@ -1,59 +1,78 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
-
-// Setup type definitions for built-in Supabase Runtime APIs
 import "@supabase/functions-js/edge-runtime.d.ts";
-import { withSupabase } from "@supabase/server";
-console.log("Hello from Functions!");
 
-// This endpoint uses 'publishable' | 'secret' access, apiKey is required.
-// Use publishable for Client-facing, key-validated endpoints
-// Use secret for Server-to-server, internal calls
-export default {
-  fetch: withSupabase({ auth: "none" }, async (req, ctx) => {
-    // Called by another service with a secret key
-    // ctx.supabaseAdmin bypasses RLS — use for privileged operations
-    /*
-    if (ctx.authMode === "secret") {
-      const { user_id } = await req.json();
-      const { data } = await ctx.supabaseAdmin.auth.admin.getUserById(user_id);
+const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
 
-      return Response.json({
-        email: data?.user?.email,
-      });
-    }
-    */
-    if (req.method === "GET") {
-      return Response.json({
-        message: "Hello, it-incubator",
-        studentId: "#5122",
-      });
-    }
+Deno.serve(async (req) => {
+  if (req.method === "GET") {
+    return Response.json({
+      message: "hello, it-incubator",
+      studentId: "#5122",
+    });
+  }
 
-    try {
-      const data = await req.json();
+  if (req.method !== "POST") {
+    return Response.json(
+      { error: "Method not allowed" },
+      { status: 405 },
+    );
+  }
 
-      // Возвращаем ровно то, что пришло в запросе
-      return Response.json(data);
-    } catch {
-      return Response.json(
-        {
-          error: "Request body must contain valid JSON",
+  if (!botToken) {
+    return Response.json(
+      { error: "TELEGRAM_BOT_TOKEN is not set" },
+      { status: 500 },
+    );
+  }
+
+  let update;
+
+  try {
+    update = await req.json();
+  } catch {
+    return Response.json(
+      { error: "Request body must contain valid JSON" },
+      { status: 400 },
+    );
+  }
+
+  const message = update?.message;
+  const chatId = message?.chat?.id;
+  const text = message?.text;
+
+  console.log(
+    JSON.stringify({
+      chatId,
+      username: message?.from?.username,
+      text,
+    }),
+  );
+
+  if (chatId !== undefined && text) {
+    const telegramResponse = await fetch(
+      `https://api.telegram.org/bot${botToken}/sendMessage`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        { status: 400 },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: `\u042f \u043f\u043e\u043b\u0443\u0447\u0438\u043b\u0430 \u0432\u0430\u0448\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435: ${text}`,
+        }),
+      },
+    );
+
+    if (!telegramResponse.ok) {
+      console.error(
+        "Telegram API error:",
+        await telegramResponse.text(),
+      );
+      return Response.json(
+        { error: "Telegram API request failed" },
+        { status: 502 },
       );
     }
-  }),
-};
+  }
 
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/hello-world' \
-    --header 'apiKey: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH' \
-    --data '{"name":"Functions"}'
-
-*/
+  return Response.json({ ok: true });
+});
