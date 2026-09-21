@@ -7,7 +7,8 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "check": "deno fmt --check --config supabase/functions/deno.json supabase/functions && deno lint --config supabase/functions/deno.json supabase/functions && deno check --config supabase/functions/deno.json supabase/functions/_shared/supabase.ts supabase/functions/Messages/index.ts supabase/functions/clients/index.ts supabase/functions/hello-world/index.ts",
+    "test": "npm run check"
   },
   "devDependencies": {
     "supabase": "^2.117.0"
