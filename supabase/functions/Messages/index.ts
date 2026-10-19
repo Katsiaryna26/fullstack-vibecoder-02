@@ -26,9 +26,25 @@ Deno.serve(async (req) => {
 
   try {
     const supabase = createSupabaseClient();
+    const url = new URL(req.url);
+    const rawClientId = url.searchParams.get("client_id");
+
+    if (!rawClientId) {
+      return jsonResponse({ error: "client_id is required" }, 400);
+    }
+
+    const clientId = Number(rawClientId);
+    if (!Number.isInteger(clientId) || clientId < 1) {
+      return jsonResponse(
+        { error: "client_id must be a positive integer" },
+        400,
+      );
+    }
+
     const { data, error } = await supabase
       .from("messages")
       .select(messageColumns)
+      .eq("client_id", clientId)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false });
 

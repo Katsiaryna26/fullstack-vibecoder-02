@@ -1,16 +1,30 @@
 {
   "name": "02-lesson",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
+  "description": "Client inbox powered by Supabase Edge Functions",
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
     "check": "deno fmt --check --config supabase/functions/deno.json supabase/functions && deno lint --config supabase/functions/deno.json supabase/functions && deno check --config supabase/functions/deno.json supabase/functions/_shared/supabase.ts supabase/functions/Messages/index.ts supabase/functions/clients/index.ts supabase/functions/hello-world/index.ts",
-    "test": "npm run check"
+    "test": "npm run build && npm run check"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.59.0",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.1"
   },
   "devDependencies": {
-    "supabase": "^2.117.0"
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "supabase": "^2.117.0",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.1"
   }
 }
