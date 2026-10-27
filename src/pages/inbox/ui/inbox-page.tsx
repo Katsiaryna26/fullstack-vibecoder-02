@@ -3,6 +3,7 @@ import { Inbox, MessageCircle, Search, SlidersHorizontal, Wifi } from "lucide-re
 import { useClientsQuery } from "@/entities/client/api/queries";
 import { getClientName } from "@/shared/lib/format";
 import { useInboxStore } from "@/features/inbox/model/inbox-store";
+import { useMessagesRealtime } from "@/features/inbox/model/use-messages-realtime";
 import { ClientList } from "./client-list";
 import { ConversationPanel } from "./conversation-panel";
 
@@ -11,6 +12,7 @@ export function InboxPage() {
   const clients = clientsQuery.data ?? [];
   const selectedClientId = useInboxStore((state) => state.selectedClientId);
   const setSelectedClientId = useInboxStore((state) => state.setSelectedClientId);
+  const realtimeStatus = useMessagesRealtime(selectedClientId);
 
   useEffect(() => {
     if (clients.length === 0) return;
@@ -47,9 +49,12 @@ export function InboxPage() {
               <p className="eyebrow">Workspace</p>
               <h1>Inbox</h1>
             </div>
-            <div className="live-indicator" title="Connected to edge functions">
+            <div
+              className={`live-indicator ${realtimeStatus}`}
+              title={getRealtimeStatusDescription(realtimeStatus)}
+            >
               <Wifi size={14} />
-              <span>Live</span>
+              <span>{getRealtimeStatusLabel(realtimeStatus)}</span>
             </div>
           </div>
 
@@ -96,4 +101,32 @@ export function InboxPage() {
       </div>
     </div>
   );
+}
+
+function getRealtimeStatusLabel(status: ReturnType<typeof useMessagesRealtime>): string {
+  switch (status) {
+    case "connected":
+      return "Live";
+    case "connecting":
+      return "Connecting";
+    case "error":
+      return "Retrying";
+    default:
+      return "Setup needed";
+  }
+}
+
+function getRealtimeStatusDescription(
+  status: ReturnType<typeof useMessagesRealtime>,
+): string {
+  switch (status) {
+    case "connected":
+      return "Listening for new messages in the selected conversation";
+    case "connecting":
+      return "Connecting to Supabase Realtime";
+    case "error":
+      return "Supabase Realtime could not connect";
+    default:
+      return "Set VITE_SUPABASE_ANON_KEY to enable live messages";
+  }
 }

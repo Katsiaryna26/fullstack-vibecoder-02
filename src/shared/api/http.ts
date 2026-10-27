@@ -11,15 +11,13 @@ export class ApiError extends Error {
 }
 
 export async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const headers: HeadersInit = { Accept: "application/json" };
-
-  if (runtimeConfig.anonKey) {
-    headers.apikey = runtimeConfig.anonKey;
-  }
-
   const response = await fetch(`${runtimeConfig.functionsUrl}/${path}`, {
     method: "GET",
-    headers,
+    // The read-only edge functions are public (verify_jwt = false). Keeping
+    // this request to safelisted headers avoids a browser CORS preflight.
+    // The deployed project currently fails OPTIONS requests, which otherwise
+    // prevents clients and messages from loading in the frontend.
+    headers: { Accept: "application/json" },
     signal,
   });
 

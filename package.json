@@ -9,10 +9,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "db:push": "supabase db push",
     "check": "deno fmt --check --config supabase/functions/deno.json supabase/functions && deno lint --config supabase/functions/deno.json supabase/functions && deno check --config supabase/functions/deno.json supabase/functions/_shared/supabase.ts supabase/functions/Messages/index.ts supabase/functions/clients/index.ts supabase/functions/hello-world/index.ts",
     "test": "npm run build && npm run check"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "@tanstack/react-query": "^5.59.0",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
