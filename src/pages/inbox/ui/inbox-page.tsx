@@ -1,13 +1,22 @@
 import { useEffect, useMemo } from "react";
+import type { User } from "@supabase/supabase-js";
 import { Inbox, MessageCircle, Search, SlidersHorizontal, Wifi } from "lucide-react";
 import { useClientsQuery } from "@/entities/client/api/queries";
 import { getClientName } from "@/shared/lib/format";
 import { useInboxStore } from "@/features/inbox/model/inbox-store";
 import { useMessagesRealtime } from "@/features/inbox/model/use-messages-realtime";
+import {
+  getUserDisplayName,
+  getUserInitials,
+} from "@/features/auth/model/use-auth-user";
 import { ClientList } from "./client-list";
 import { ConversationPanel } from "./conversation-panel";
 
-export function InboxPage() {
+type InboxPageProps = {
+  user: User | null;
+};
+
+export function InboxPage({ user }: InboxPageProps) {
   const clientsQuery = useClientsQuery();
   const clients = clientsQuery.data ?? [];
   const selectedClientId = useInboxStore((state) => state.selectedClientId);
@@ -29,8 +38,7 @@ export function InboxPage() {
   );
 
   return (
-    <div className="app-canvas">
-      <div className="inbox-shell">
+    <div className="inbox-shell">
         <aside className="sidebar" aria-label="Client conversations">
           <div className="sidebar-topbar">
             <div className="brand-lockup">
@@ -80,12 +88,12 @@ export function InboxPage() {
           <ClientList />
 
           <div className="sidebar-footer">
-            <div className="profile-avatar">AL</div>
+            <div className="profile-avatar">{getUserInitials(user)}</div>
             <div className="profile-copy">
-              <strong>Alex Laurent</strong>
-              <span>Support workspace</span>
+              <strong>{user ? getUserDisplayName(user) : "Guest"}</strong>
+              <span>{user?.email ?? "Not signed in"}</span>
             </div>
-            <span className="online-dot" aria-label="Online" />
+            {user ? <span className="online-dot" aria-label="Online" /> : null}
           </div>
         </aside>
 
@@ -98,7 +106,6 @@ export function InboxPage() {
           </div>
           <ConversationPanel />
         </main>
-      </div>
     </div>
   );
 }
