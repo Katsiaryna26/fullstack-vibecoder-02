@@ -38,6 +38,35 @@ export function createSupabaseClient() {
   });
 }
 
+export function createUserSupabaseClient(req: Request) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const publicKey = Deno.env.get("SUPABASE_ANON_KEY") ??
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
+    req.headers.get("apikey");
+  const authorization = req.headers.get("Authorization");
+
+  if (!supabaseUrl || !publicKey) {
+    throw new Error("Supabase public keys are not configured");
+  }
+
+  if (!authorization?.startsWith("Bearer ")) {
+    throw new Error("Authorization header is required");
+  }
+
+  return createClient(supabaseUrl, publicKey, {
+    global: {
+      headers: {
+        Authorization: authorization,
+      },
+    },
+    auth: {
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      persistSession: false,
+    },
+  });
+}
+
 export function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -49,5 +78,5 @@ export function jsonResponse(body: unknown, status = 200): Response {
 }
 
 export function optionsResponse(): Response {
-  return new Response("", { status: 204, headers: corsHeaders });
+  return new Response(null, { status: 204, headers: corsHeaders });
 }

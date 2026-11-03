@@ -1,4 +1,4 @@
-import { runtimeConfig } from "@/shared/config/env";
+import { supabase } from "@/shared/api/supabase";
 
 export class ApiError extends Error {
   status: number;
@@ -11,22 +11,28 @@ export class ApiError extends Error {
 }
 
 export async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${runtimeConfig.functionsUrl}/${path}`, {
+  if (!supabase) {
+    throw new ApiError("Authentication is not configured", 401);
+  }
+
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError || !session?.access_token) {
+    throw new ApiError("Authentication is required", 401);
+  }
+
+  const { data, error } = await supabase.functions.invoke<T>(path, {
     method: "GET",
-    // The read-only edge functions are public (verify_jwt = false). Keeping
-    // this request to safelisted headers avoids a browser CORS preflight.
-    // The deployed project currently fails OPTIONS requests, which otherwise
-    // prevents clients and messages from loading in the frontend.
-    headers: { Accept: "application/json" },
     signal,
   });
 
-  if (!response.ok) {
-    throw new ApiError(
-      `Request failed with status ${response.status}`,
-      response.status,
-    );
+  if (error) {
+    const status = error.context instanceof Response ? error.context.status : 500;
+    throw new ApiError(`Request failed with status ${status}`, status);
   }
 
-  return (await response.json()) as T;
+  return data as T;
 }

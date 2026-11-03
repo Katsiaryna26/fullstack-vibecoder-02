@@ -1,6 +1,6 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 import {
-  createSupabaseClient,
+  createUserSupabaseClient,
   jsonResponse,
   optionsResponse,
 } from "../_shared/supabase.ts";
@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabase = createSupabaseClient();
+    const supabase = createUserSupabaseClient(req);
     const { data, error } = await supabase
       .from("clients")
       .select(clientColumns)

@@ -2,6 +2,7 @@ import "@supabase/functions-js/edge-runtime.d.ts";
 import { createSupabaseClient } from "../_shared/supabase.ts";
 
 const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
+const webhookSecret = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
 
 Deno.serve(async (req) => {
   if (req.method === "GET") {
@@ -16,6 +17,23 @@ Deno.serve(async (req) => {
       { error: "Method not allowed" },
       { status: 405 },
     );
+  }
+
+  if (!webhookSecret) {
+    return Response.json(
+      { error: "TELEGRAM_WEBHOOK_SECRET is not set" },
+      { status: 500 },
+    );
+  }
+
+  const receivedWebhookSecret = req.headers.get(
+    "X-Telegram-Bot-Api-Secret-Token",
+  );
+  if (
+    !receivedWebhookSecret ||
+    !secretsMatch(receivedWebhookSecret, webhookSecret)
+  ) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   if (!botToken) {
@@ -159,3 +177,17 @@ Deno.serve(async (req) => {
 
   return Response.json({ ok: true });
 });
+
+function secretsMatch(received: string, expected: string): boolean {
+  const receivedBytes = new TextEncoder().encode(received);
+  const expectedBytes = new TextEncoder().encode(expected);
+
+  if (receivedBytes.length !== expectedBytes.length) return false;
+
+  let difference = 0;
+  for (let index = 0; index < expectedBytes.length; index += 1) {
+    difference |= receivedBytes[index] ^ expectedBytes[index];
+  }
+
+  return difference === 0;
+}

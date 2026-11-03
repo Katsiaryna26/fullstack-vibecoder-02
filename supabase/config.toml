@@ -427,12 +427,12 @@ entrypoint = "./functions/hello-world/index.ts"
 
 [functions.Messages]
 enabled = true
-verify_jwt = false
+verify_jwt = true
 import_map = "./functions/deno.json"
 entrypoint = "./functions/Messages/index.ts"
 
 [functions.clients]
 enabled = true
-verify_jwt = false
+verify_jwt = true
 import_map = "./functions/deno.json"
 entrypoint = "./functions/clients/index.ts"
