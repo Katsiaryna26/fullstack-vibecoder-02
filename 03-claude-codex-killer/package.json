@@ -1,0 +1,17 @@
+{
+  "name": "llm-chat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Консольный чат с OpenAI",
+  "type": "module",
+  "main": "chat.js",
+  "scripts": {
+    "start": "node --env-file=.env chat.js"
+  },
+  "engines": {
+    "node": ">=20.6.0"
+  },
+  "dependencies": {
+    "openai": "^4.104.0"
+  }
+}
