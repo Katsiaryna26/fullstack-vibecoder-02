@@ -6,7 +6,8 @@
   "type": "module",
   "main": "chat.js",
   "scripts": {
-    "start": "node --env-file=.env chat.js"
+    "start": "node --env-file=.env chat.js",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=20.6.0"
