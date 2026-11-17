@@ -1,0 +1,3 @@
+[mcp_servers.knowledge_base]
+url = "https://ynbrneaorrmdgaglxoav.supabase.co/functions/v1/knowledge-mcp"
+bearer_token_env_var = "KNOWLEDGE_MCP_TOKEN"
